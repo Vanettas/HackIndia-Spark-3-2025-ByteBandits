@@ -1,75 +1,46 @@
+# import os
+# import sys
+# import streamlit as st
+# import subprocess
+# import argparse
 
-from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from upload import upload_document
-from search import search_documents
-from summarizer import summarize_text  # Import AI Summarizer
+# def setup_directory():
+#     """Create necessary directories if they don't exist"""
+#     os.makedirs("data/documents", exist_ok=True)
+#     os.makedirs("data/vector_index", exist_ok=True)
+
+# def process_initial_documents(initial_dir=None):
+#     """Process documents in the specified directory"""
+#     try:
+#         from src.document_processor import DocumentProcessor
+#         from src.embeddings_manager import EmbeddingsManager
+        
+#         # Use specified directory or default
+#         doc_dir = initial_dir if initial_dir else "data/documents"
+        
+#         # Process documents
+#         processor = DocumentProcessor(root_dir=doc_dir)
+#         chunks = processor.process_all_documents()
+        
+#         # Create vector store
+#         embeddings_manager = EmbeddingsManager()
+#         vector_store = embeddings_manager.get_or_create_vector_store(chunks)
+        
+#         print("Successfully processed {len(chunks)} document chunks.")
+        
+#     except Exception as e:
+#         print("Error processing documents: {str(e)}")
+
+import streamlit as st
 import os
+import sys
 
-app = FastAPI()
+# Ensure directories exist
+os.makedirs("data/documents", exist_ok=True)
+os.makedirs("data/vector_index", exist_ok=True)
 
-# CORS Middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Change this to specific frontend URL in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/")
-async def root():
-    """Test API."""
-    return {"message": "FastAPI is running with MongoDB & Firebase!"}
-
-@app.post("/api/upload")
-async def upload_api(file: UploadFile = File(...), title: str = Form(...), content: str = Form(...)):
-    """API to handle file uploads."""
-    try:
-        # Ensure upload directory exists
-        os.makedirs("uploads", exist_ok=True)
-        file_path = f"uploads/{file.filename}"
-
-        # Save file locally
-        with open(file_path, "wb") as buffer:
-            buffer.write(file.file.read())
-
-        # Upload document to Firebase & store metadata in MongoDB
-        response = upload_document(title, content, file_path)
-
-        # Delete the local file after uploading
-        os.remove(file_path)
-
-        return response
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
-
-@app.post("/api/search")
-async def search_api(request: Request):
-    """API to search documents."""
-    try:
-        query_data = await request.json()  # Ensure query is parsed correctly
-        if "query" not in query_data:
-            raise HTTPException(status_code=400, detail="Missing search query.")
-
-        return search_documents(query_data["query"])
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
-
-
-@app.post("/api/summarize")
-async def summarize_api(request: Request):
-    """API to summarize text."""
-    try:
-        data = await request.json()
-        if "text" not in data:
-            raise HTTPException(status_code=400, detail="Missing text input.")
-
-        summary = summarize_text(data["text"])
-        return {"summary": summary}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Summarization failed: {str(e)}")
-
+# Run the Streamlit app
+if __name__ == "__main__":
+    # This is just an entry point - Streamlit will look for app.py
+    # Run with: streamlit run main.py
+    print("Starting Document Assistant...")
