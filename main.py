@@ -1,48 +1,75 @@
-from fastapi import FastAPI, Request
+
+from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from search import search_documents
 from upload import upload_document
-from googlehelper import list_google_drive_files
+from search import search_documents
+from summarizer import summarize_text  # Import AI Summarizer
+import os
 
 app = FastAPI()
 
-# Auto-detect frontend URL
-DEFAULT_FRONTEND_URL = "http://localhost:3000"
-ALLOWED_ORIGINS = [DEFAULT_FRONTEND_URL]
-
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],  # Change this to specific frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def detect_frontend_origin(request: Request, call_next):
-    """Auto-detect frontend URL."""
-    origin = request.headers.get("origin")
-    if origin and origin not in ALLOWED_ORIGINS:
-        ALLOWED_ORIGINS.append(origin)
-    response = await call_next(request)
-    return response
-
 @app.get("/")
 async def root():
     """Test API."""
-    return {"message": f"FastAPI running with CORS for: {ALLOWED_ORIGINS}"}
-
-@app.post("/api/search")
-async def search_api(query: dict):
-    """Search documents."""
-    return search_documents(query["query"])
+    return {"message": "FastAPI is running with MongoDB & Firebase!"}
 
 @app.post("/api/upload")
-async def upload_api(document: dict):
-    """Upload a document to MongoDB & Google Drive."""
-    return upload_document(document["title"], document["content"], document["file_path"])
+async def upload_api(file: UploadFile = File(...), title: str = Form(...), content: str = Form(...)):
+    """API to handle file uploads."""
+    try:
+        # Ensure upload directory exists
+        os.makedirs("uploads", exist_ok=True)
+        file_path = f"uploads/{file.filename}"
 
-@app.get("/api/drive-files")
-async def list_drive_files():
-    """List files from Google Drive."""
-    return list_google_drive_files()
+        # Save file locally
+        with open(file_path, "wb") as buffer:
+            buffer.write(file.file.read())
+
+        # Upload document to Firebase & store metadata in MongoDB
+        response = upload_document(title, content, file_path)
+
+        # Delete the local file after uploading
+        os.remove(file_path)
+
+        return response
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@app.post("/api/search")
+async def search_api(request: Request):
+    """API to search documents."""
+    try:
+        query_data = await request.json()  # Ensure query is parsed correctly
+        if "query" not in query_data:
+            raise HTTPException(status_code=400, detail="Missing search query.")
+
+        return search_documents(query_data["query"])
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+
+@app.post("/api/summarize")
+async def summarize_api(request: Request):
+    """API to summarize text."""
+    try:
+        data = await request.json()
+        if "text" not in data:
+            raise HTTPException(status_code=400, detail="Missing text input.")
+
+        summary = summarize_text(data["text"])
+        return {"summary": summary}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Summarization failed: {str(e)}")
+
