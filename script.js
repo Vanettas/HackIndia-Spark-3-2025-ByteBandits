@@ -1,44 +1,52 @@
-from mongo import documents_collection
-from search import model
-from googlehelper import upload_to_google_drive
-from summarizer import summarize_text  # Import AI Summarizer
-
-def upload_document(title: str, content: str, local_file_path: str):
-    """Uploads a document with AI-generated embedding & stores it on Google Drive."""
+async function searchDocuments() {
+    let query = document.getElementById("searchQuery").value;
     
-    if not title or not content:
-        return {"error": "Title and content are required."}
+    let response = await fetch("http://127.0.0.1:8000/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+    });
 
-    try:
-        # Generate AI-powered embedding
-        embedding = model.encode(content).tolist()
+    let data = await response.json();
+    displayResults(data.documents);
+}
 
-        # AI-generated summary using NLP
-        summary = summarize_text(content)
+function displayResults(documents) {
+    let resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "";
 
-        # Upload file to Google Drive
-        drive_upload = upload_to_google_drive(local_file_path, title)
-        
-        if "file_id" not in drive_upload:
-            return {"error": "Google Drive upload failed."}
-        
-        google_drive_file_id = drive_upload["file_id"]
+    if (documents.length === 0) {
+        resultsDiv.innerHTML = "<p>No results found.</p>";
+        return;
+    }
 
-        # Save document to MongoDB
-        new_doc = {
-            "title": title,
-            "summary": summary,  # AI-powered summary
-            "embedding": embedding,  # AI embedding
-            "google_drive_id": google_drive_file_id,  # Drive file ID
-        }
+    documents.forEach(doc => {
+        let docElement = document.createElement("div");
+        docElement.innerHTML = `<h3>${doc.title}</h3><p>${doc.summary}</p>`;
+        resultsDiv.appendChild(docElement);
+    });
+}
 
-        inserted_doc = documents_collection.insert_one(new_doc)
-        
-        return {
-            "message": "Document uploaded successfully!",
-            "drive_id": google_drive_file_id,
-            "document_id": str(inserted_doc.inserted_id),
-        }
+async function uploadFile() {
+    let fileInput = document.getElementById("fileInput");
+    let file = fileInput.files[0];
 
-    except Exception as e:
-        return {"error": f"Failed to upload document: {str(e)}"}
+    if (!file) return;
+
+    let formData = new FormData();
+    formData.append("file", file);
+
+    let response = await fetch("http://127.0.0.1:8000/api/upload", {
+        method: "POST",
+        body: formData
+    });
+
+    let data = await response.json();
+    document.getElementById("uploadStatus").innerText = data.message;
+}
+
+// Simulate admin access (set to false for regular users)
+let isAdmin = true;
+if (!isAdmin) {
+    document.getElementById("adminUpload").style.display = "none";
+}
