@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Document Upload</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Document Upload</h1>
+
+        <!-- Admin Login -->
+        <div id="adminLogin" class="admin-container">
+            <p>Login to upload files:</p>
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
+            <button onclick="checkAdmin()">Login as Admin</button>
+        </div>
+
+        <!-- Upload Section (Hidden by Default) -->
+        <div id="adminUpload" class="upload-container" style="display: none;">
+            <label class="upload-btn">
+                Upload Document
+                <input type="file" id="fileInput" class="hidden" onchange="uploadFile()">
+            </label>
+            <p id="uploadStatus"></p>
+        </div>
+
+        <!-- Redirect to Search Page -->
+        <div class="back-link">
+            <p><a href="index.html">Back to Search Page</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

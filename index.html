@@ -26,7 +26,12 @@
             <input type="file" id="summaryFileInput">
             <button onclick="uploadAndSummarize()">Upload & Summarize</button>
             <p id="uploadStatus"></p>
-            <p id="summaryResult"></p>
+            
+            <!-- Summarization Result Section -->
+            <div id="summarizationResult" class="summary-container" style="display: none;">
+                <h3>🔎 Summarized Text:</h3>
+                <p id="summaryResult"></p>
+            </div>
         </div>
 
         <!-- 🔹 Redirect to Admin Page -->
