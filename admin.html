@@ -21,8 +21,9 @@
         <div id="adminUpload" class="upload-container" style="display: none;">
             <label class="upload-btn">
                 Upload Document
-                <input type="file" id="fileInput" class="hidden" onchange="uploadFile()">
+                <input type="file" id="fileInput" >
             </label>
+            <button onclick="uploadFile()">Upload</button> <!-- Added Upload Button -->
             <p id="uploadStatus"></p>
         </div>
 
