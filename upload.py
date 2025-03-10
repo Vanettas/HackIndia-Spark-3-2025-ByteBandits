@@ -1,45 +1,57 @@
+import logging
 from mongo import documents_collection
 from search import model
-from googlehelper import upload_to_google_drive
+from firebasehelper import upload_to_firebase  # Switched from Google Drive to Firebase
 from summarizer import summarize_text  # Import AI Summarizer
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def upload_document(title: str, content: str, local_file_path: str):
-    """Uploads a document with AI-generated embedding & stores it on Google Drive."""
+    """Uploads a document with AI-generated embedding & stores it in Firebase & MongoDB."""
 
     if not title or not content:
+        logging.error("Title and content are required.")
         return {"error": "Title and content are required."}
 
     try:
         # Generate AI-powered embedding
+        logging.info("Generating AI embedding...")
         embedding = model.encode(content).tolist()
 
         # AI-generated summary using NLP
+        logging.info("Generating AI summary...")
         summary = summarize_text(content)
 
-        # Upload file to Google Drive
-        drive_upload = upload_to_google_drive(local_file_path, title)
+        # Upload file to Firebase Storage
+        logging.info(f"Uploading '{title}' to Firebase...")
+        firebase_upload = upload_to_firebase(local_file_path, title)
 
-        if "file_id" not in drive_upload:
-            return {"error": "Google Drive upload failed."}
+        if "file_url" not in firebase_upload:
+            logging.error("Firebase upload failed.")
+            return {"error": "Firebase upload failed."}
 
-        google_drive_file_id = drive_upload["file_id"]
+        file_url = firebase_upload["file_url"]
 
-        # Save document to MongoDB
+        # Save document metadata to MongoDB
         new_doc = {
             "title": title,
             "summary": summary,  # AI-powered summary
             "embedding": embedding,  # AI embedding
-            "google_drive_id": google_drive_file_id,  # Drive file ID
+            "file_url": file_url,  # Firebase file URL
         }
 
         inserted_doc = documents_collection.insert_one(new_doc)
 
+        logging.info(f"Document '{title}' uploaded successfully!")
+
         return {
             "message": "Document uploaded successfully!",
-            "drive_id": google_drive_file_id,
+            "file_url": file_url,
             "document_id": str(inserted_doc.inserted_id),
         }
 
     except Exception as e:
+        logging.error(f"Failed to upload document: {str(e)}")
         return {"error": f"Failed to upload document: {str(e)}"}
