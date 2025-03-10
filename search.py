@@ -1,5 +1,5 @@
 from sentence_transformers import SentenceTransformer
-from database import documents_collection  # Import MongoDB connection
+from mongo import documents_collection  # Import MongoDB connection
 
 # Load NLP Model (Sentence Transformers)
 model = SentenceTransformer("all-MiniLM-L6-v2")
