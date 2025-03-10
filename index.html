@@ -3,30 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Document Search</title>
+    <title>AI Document Search & Summarization</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>AI Document Search</h1>
+        <h1>AI Document Search & Summarization</h1>
 
-        <!-- Smart Search Bar -->
-        <div class="search-container">
-            <input type="text" id="searchQuery" placeholder="Search documents...">
-            <button onclick="searchDocuments()">Search</button>
+        <!-- 🔹 Search Section -->
+        <div class="box search-box">
+            <h2>🔍 Search Documents</h2>
+            <div class="search-container">
+                <input type="text" id="searchQuery" placeholder="Search documents...">
+                <button onclick="searchDocuments()">Search</button>
+            </div>
+            <div id="results" class="results-container"></div>
         </div>
 
-        <!-- Upload Button (Only for Admins) -->
-        <div id="adminUpload" class="upload-container">
-            <label class="upload-btn">
-                Upload Document
-                <input type="file" id="fileInput" class="hidden" onchange="uploadFile()">
-            </label>
+        <!-- 🔹 Summarization Section -->
+        <div class="box summarization-box">
+            <h2>📄 Upload a Document for Summarization</h2>
+            <input type="file" id="summaryFileInput">
+            <button onclick="uploadAndSummarize()">Upload & Summarize</button>
             <p id="uploadStatus"></p>
+            <p id="summaryResult"></p>
         </div>
 
-        <!-- Results Section -->
-        <div id="results" class="results-container"></div>
+        <!-- 🔹 Redirect to Admin Page -->
+        <div class="admin-link">
+            <p>Admin? <a href="admin.html">Go to Admin Upload Page</a></p>
+        </div>
     </div>
 
     <script src="script.js"></script>
